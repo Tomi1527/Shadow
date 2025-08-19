@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AkteManager – Supabase Sync (GitHub Pages Ready, Dark)</title>
+  <title>Shadow Aktensystem</title>
   <meta name="description" content="Kostenloses Aktensystem mit Supabase-Sync. Dark Mode, Suche, Sortierung, Einträge/Logs, Export/Import. Läuft statisch auf GitHub Pages." />
   <!-- TailwindCSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -23,12 +23,12 @@
     <!-- Header -->
     <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
       <div>
-        <h1 class="text-3xl font-bold tracking-tight">AkteManager</h1>
-        <p class="text-sm text-gray-400">Dark Mode • Supabase Sync • GitHub Pages</p>
+        <h1 class="text-3xl font-bold tracking-tight">Shadow AkteManager</h1>
+        <p class="text-sm text-gray-400"></p>
       </div>
       <div class="flex flex-wrap gap-2">
         <button id="btnConfig" class="px-4 py-2 rounded-2xl bg-gray-700 text-white shadow hover:bg-gray-600">Verbinden</button>
-        <button id="btnAdd" class="px-4 py-2 rounded-2xl bg-blue-600 text-white shadow hover:bg-blue-700">Neue Akte</button>
+        <button id="btnAdd" class="px-4 py-2 rounded-2xl bg-blue-600 text-white shadow hover:bg-blue-700">Neue Person</button>
         <label for="importFile" class="px-4 py-2 rounded-2xl bg-gray-800 border shadow hover:bg-gray-700 cursor-pointer">Import JSON</label>
         <input id="importFile" type="file" accept="application/json" />
         <button id="btnExport" class="px-4 py-2 rounded-2xl bg-gray-800 border shadow hover:bg-gray-700">Export JSON</button>
@@ -118,7 +118,7 @@
     <!-- Add/Edit Modal -->
     <dialog id="editDialog" class="w-full max-w-2xl rounded-2xl p-0">
       <form method="dialog" class="p-4 flex justify-between items-start border-b bg-gray-800 text-gray-100">
-        <h3 id="editTitle" class="text-lg font-semibold">Neue Akte</h3>
+        <h3 id="editTitle" class="text-lg font-semibold">Neue Person</h3>
         <button class="px-3 py-1 rounded-xl bg-gray-700">Abbrechen</button>
       </form>
       <div class="p-4 bg-gray-900 text-gray-100">
