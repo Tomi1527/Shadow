@@ -274,59 +274,167 @@
       await refresh();
     }
 
-    // =============================
-    // Einträge/Logs
-    // =============================
-    const detailDialog = $('#detailDialog');
-    const logList = $('#logList');
-    let currentDetailId = null;
 
-    async function openDetail(id){
-      const r = state.records.find(x=>x.id===id);
-      if(!r) return;
-      currentDetailId = id;
-      $('#detailName').textContent = r.name;
-      $('#detailPhone').textContent = r.phone || '—';
-      $('#detailAddress').textContent = r.address || '—';
-      $('#detailNotes').textContent = r.notes || '—';
-      $('#detailCreated').textContent = fmt(r.createdAt);
-      $('#detailUpdated').textContent = fmt(r.updatedAt);
-      await renderLogs(r);
-      detailDialog.showModal();
-    }
 
-    async function renderLogs(r){
-      if(!sb){ logList.innerHTML = '<li class="text-sm text-gray-400">Nicht verbunden.</li>'; return; }
-      const { data, error } = await sb.from('entries').select('*').eq('person_id', r.id).order('created_at', { ascending: false });
-      if(error){ logList.innerHTML = '<li class="text-sm text-red-400">Fehler beim Laden der Einträge.</li>'; return; }
-      const items = (data||[]).map(l=>`
-        <li class="bg-gray-800 border rounded-xl p-3">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-xs text-gray-400">${fmt(l.created_at)}</span>
-            <button class="text-xs px-2 py-1 rounded-lg bg-red-800 text-red-100 border border-red-700" onclick="deleteLog('${l.id}')">Entfernen</button>
-          </div>
-          <p class="mt-2 whitespace-pre-wrap">${escapeHtml(l.text)}</p>
-        </li>`).join('');
-      logList.innerHTML = items || '<li class="text-sm text-gray-400">Noch keine Einträge.</li>';
-    }
+// =============================
+// Einträge/Logs mit Modal & Bearbeiten-Button
+// =============================
+const detailDialog = $('#detailDialog');
+const logList = $('#logList');
+let currentDetailId = null;
 
-    async function addLog(){
-      if(!currentDetailId){ return; }
-      const text = prompt('Neuer Eintrag');
-      if(!text) return;
-      const { error } = await sb.from('entries').insert({ person_id: currentDetailId, text: text.trim() });
-      if(error){ alert('Eintrag fehlgeschlagen: '+error.message); return; }
-      await refresh();
-      const rec = state.records.find(x=>x.id===currentDetailId);
-      if(rec) await renderLogs(rec);
-    }
+const logModal = document.createElement('dialog');
+logModal.classList.add('p-4', 'rounded-lg', 'bg-gray-900', 'text-white');
+logModal.style.maxWidth = '90vw';
+logModal.style.maxHeight = '80vh';
+document.body.appendChild(logModal);
 
-    async function deleteLog(logId){
-      const { error } = await sb.from('entries').delete().eq('id', logId);
-      if(error){ alert('Löschen fehlgeschlagen: '+error.message); return; }
-      const rec = state.records.find(x=>x.id===currentDetailId);
-      if(rec) await renderLogs(rec);
-    }
+async function openDetail(id){
+  const r = state.records.find(x=>x.id===id);
+  if(!r) return;
+  currentDetailId = id;
+  $('#detailName').textContent = r.name;
+  $('#detailPhone').textContent = r.phone || '—';
+  $('#detailAddress').textContent = r.address || '—';
+  $('#detailNotes').textContent = r.notes || '—';
+  $('#detailCreated').textContent = fmt(r.createdAt);
+  $('#detailUpdated').textContent = fmt(r.updatedAt);
+  await renderLogs(r);
+  detailDialog.showModal();
+}
+
+async function renderLogs(r){
+  if(!sb){ 
+    logList.innerHTML = '<li class="text-sm text-gray-400">Nicht verbunden.</li>'; 
+    return; 
+  }
+
+  const { data, error } = await sb.from('entries')
+    .select('*')
+    .eq('person_id', r.id)
+    .order('created_at', { ascending: false });
+
+  if(error){ 
+    logList.innerHTML = '<li class="text-sm text-red-400">Fehler beim Laden der Einträge.</li>'; 
+    return; 
+  }
+
+  const items = (data||[]).map(l => `
+    <li class="bg-gray-800 border rounded-xl p-3">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-xs text-gray-400">${fmt(l.created_at)}</span>
+        <button class="text-xs px-2 py-1 rounded-lg bg-red-800 text-red-100 border border-red-700" onclick="deleteLog('${l.id}')">Entfernen</button>
+      </div>
+      <h3 class="mt-2 cursor-pointer text-blue-300 hover:underline" onclick="showLogModal('${l.id}')">
+        ${escapeHtml(l.title || '—')}
+      </h3>
+    </li>
+  `).join('');
+
+  logList.innerHTML = items || '<li class="text-sm text-gray-400">Noch keine Einträge.</li>';
+}
+
+// Neues Log hinzufügen
+async function addLog(){
+  if(!currentDetailId) return;
+
+  logModal.style.width = '400px';
+  logModal.style.height = '300px';
+
+  logModal.innerHTML = `
+    <h2 class="text-lg font-bold mb-2">Neuer Eintrag</h2>
+    <input id="logTitle" class="w-full p-2 mb-2 rounded bg-gray-700 text-white" placeholder="Überschrift" />
+    <textarea id="logText" class="w-full p-2 mb-2 rounded bg-gray-700 text-white" placeholder="Text" rows="8"></textarea>
+    <div class="flex justify-end gap-2">
+      <button id="cancelBtn" class="px-3 py-1 rounded bg-gray-600">Abbrechen</button>
+      <button id="saveBtn" class="px-3 py-1 rounded bg-blue-600">Speichern</button>
+    </div>
+  `;
+  logModal.showModal();
+
+  $('#cancelBtn').onclick = () => logModal.close();
+  $('#saveBtn').onclick = async () => {
+    const title = $('#logTitle').value.trim();
+    const text = $('#logText').value.trim();
+    if(!title || !text){ alert('Bitte Titel und Text ausfüllen'); return; }
+
+    const { error } = await sb.from('entries').insert({ person_id: currentDetailId, title, text });
+    if(error){ alert('Eintrag fehlgeschlagen: ' + error.message); return; }
+
+    logModal.close();
+    await refresh();
+    const rec = state.records.find(x => x.id === currentDetailId);
+    if(rec) await renderLogs(rec);
+  };
+}
+
+// Bestehenden Log anzeigen + Bearbeiten-Button (großes Lesemodal)
+async function showLogModal(id){
+  const { data, error } = await sb.from('entries').select('*').eq('id', id).single();
+  if(error || !data){ return alert('Eintrag nicht gefunden'); }
+  const { title, text } = data;
+
+  logModal.style.width = '500px';
+  logModal.style.height = '500px';
+
+  logModal.innerHTML = `
+    <h2 class="text-lg font-bold mb-2">${escapeHtml(title)}</h2>
+    <div style="height: calc(100% - 100px); overflow-y: auto;">
+      <p class="whitespace-pre-wrap">${escapeHtml(text)}</p>
+    </div>
+    <div class="flex justify-end gap-2 mt-2">
+      <button id="editBtn" class="px-3 py-1 rounded bg-blue-600">Bearbeiten</button>
+      <button id="closeBtn" class="px-3 py-1 rounded bg-gray-600">Schließen</button>
+    </div>
+  `;
+  logModal.showModal();
+
+  $('#closeBtn').onclick = () => logModal.close();
+  
+  $('#editBtn').onclick = () => editLog(id, title, text);
+}
+
+// Bearbeiten-Funktion
+function editLog(id, title, text){
+  logModal.style.width = '400px';
+  logModal.style.height = '300px';
+
+  logModal.innerHTML = `
+    <h2 class="text-lg font-bold mb-2">Eintrag bearbeiten</h2>
+    <input id="logTitle" class="w-full p-2 mb-2 rounded bg-gray-700 text-white" value="${escapeHtml(title)}" />
+    <textarea id="logText" class="w-full p-2 mb-2 rounded bg-gray-700 text-white" rows="8">${escapeHtml(text)}</textarea>
+    <div class="flex justify-end gap-2">
+      <button id="cancelBtn" class="px-3 py-1 rounded bg-gray-600">Abbrechen</button>
+      <button id="saveBtn" class="px-3 py-1 rounded bg-blue-600">Speichern</button>
+    </div>
+  `;
+
+  $('#cancelBtn').onclick = () => logModal.close();
+  $('#saveBtn').onclick = async () => {
+    const newTitle = $('#logTitle').value.trim();
+    const newText = $('#logText').value.trim();
+    if(!newTitle || !newText){ alert('Bitte Titel und Text ausfüllen'); return; }
+
+    const { error } = await sb.from('entries').update({ title: newTitle, text: newText }).eq('id', id);
+    if(error){ alert('Speichern fehlgeschlagen: ' + error.message); return; }
+
+    logModal.close();
+    const rec = state.records.find(x => x.id === currentDetailId);
+    if(rec) await renderLogs(rec);
+  };
+}
+
+async function deleteLog(logId){
+  const { error } = await sb.from('entries').delete().eq('id', logId);
+  if(error){ alert('Löschen fehlgeschlagen: '+error.message); return; }
+  const rec = state.records.find(x => x.id===currentDetailId);
+  if(rec) await renderLogs(rec);
+}
+
+
+
+
+
 
     // =============================
     // Export / Import (Supabase)
