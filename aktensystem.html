@@ -35,9 +35,9 @@
       <div class="flex flex-wrap gap-2">
         <button id="btnConfig" class="px-4 py-2 rounded-2xl bg-gray-700 text-white shadow hover:bg-gray-600">Verbinden</button>
         <button id="btnAdd" class="px-4 py-2 rounded-2xl bg-blue-600 text-white shadow hover:bg-blue-700">Neue Person</button>
-        <label for="importFile" class="px-4 py-2 rounded-2xl bg-gray-800 border shadow hover:bg-gray-700 cursor-pointer">Import JSON</label>
+        <label for="importFile" class="px-4 py-2 rounded-2xl bg-gray-800 border shadow hover:bg-gray-700 cursor-pointer">Backup Laden</label>
         <input id="importFile" type="file" accept="application/json" />
-        <button id="btnExport" class="px-4 py-2 rounded-2xl bg-gray-800 border shadow hover:bg-gray-700">Export JSON</button>
+        <button id="btnExport" class="px-4 py-2 rounded-2xl bg-gray-800 border shadow hover:bg-gray-700">Backup Ziehen</button>
         <button id="btnReset" class="px-4 py-2 rounded-2xl bg-red-800 text-red-100 border border-red-700 hover:bg-red-700">Alles löschen</button>
       </div>
     </header>
@@ -240,7 +240,7 @@
           </td>
         </tr>`).join('');
       tableBody.innerHTML = rows || `<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Keine Akten vorhanden – klicke auf <strong>Neue Person</strong>.</td></tr>`;
-      count.textContent = filtered.length + ' Akte' + (filtered.length===1?'':'n');
+      count.textContent = filtered.length + ' Person' + (filtered.length===1?'':'en');
     }
 
     // =============================
