@@ -254,14 +254,50 @@
       render();
     }
 
-    async function createRecord(data){
-      if(!sb){ alert('Noch nicht verbunden. Klicke oben auf "Verbinden".'); return; }
-      const now = new Date().toISOString();
-      const row = { name: data.name.trim(), phone: cleanPhone(data.phone||''), address: (data.address||'').trim(), notes: (data.notes||'').trim(), created_at: now, updated_at: now };
-      const { data: inserted, error } = await sb.from('persons').insert(row).select().single();
-      if(error){ alert('Speichern fehlgeschlagen: '+error.message); return; }
-      await refresh();
-    }
+// =============================
+// Neue Person erstellen (+ automatisch Akte "Vorherige Fraktionen")
+// =============================
+async function createRecord(data){
+  if(!sb){ 
+    alert('Noch nicht verbunden. Klicke oben auf "Verbinden".'); 
+    return; 
+  }
+
+  const now = new Date().toISOString();
+  const row = { 
+    name: data.name.trim(), 
+    phone: cleanPhone(data.phone||''), 
+    address: (data.address||'').trim(), 
+    notes: (data.notes||'').trim(), 
+    created_at: now, 
+    updated_at: now 
+  };
+
+  // Person anlegen
+  const { data: inserted, error } = await sb.from('persons')
+    .insert(row)
+    .select()
+    .single();
+
+  if(error){ 
+    alert('Speichern fehlgeschlagen: ' + error.message); 
+    return; 
+  }
+
+  // Automatisch Akte "Vorherige Fraktionen" hinzufügen
+  const { error: logError } = await sb.from('entries').insert({
+    person_id: inserted.id,
+    title: "Vorherige Fraktionen",
+    text: ""
+  });
+
+  if(logError){ 
+    console.error("Automatischer Eintrag fehlgeschlagen:", logError.message); 
+  }
+
+  await refresh();
+}
+
 
     async function updateRecord(id, patch){
       if(!sb){ alert('Nicht verbunden.'); return; }
