@@ -467,11 +467,27 @@ function editLog(id, title, text){
 }
 
 async function deleteLog(logId){
+  // Titel des Logs abrufen
+  const { data: log, error: fetchError } = await sb.from('entries').select('title').eq('id', logId).single();
+  if(fetchError){
+    alert('Fehler beim Prüfen des Eintrags: ' + fetchError.message);
+    return;
+  }
+
+  // Löschen verhindern, wenn es die "Vorherige Fraktionen"-Akte ist
+  if(log.title === "Vorherige Fraktionen"){
+    alert('Die Akte "Vorherige Fraktionen" kann nicht gelöscht werden.');
+    return;
+  }
+
+  // Normales Löschen
   const { error } = await sb.from('entries').delete().eq('id', logId);
   if(error){ alert('Löschen fehlgeschlagen: '+error.message); return; }
-  const rec = state.records.find(x => x.id===currentDetailId);
+
+  const rec = state.records.find(x => x.id === currentDetailId);
   if(rec) await renderLogs(rec);
 }
+
 
 
 
