@@ -233,7 +233,7 @@
             </div>
           </td>
         </tr>`).join('');
-      tableBody.innerHTML = rows || `<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Keine Akten vorhanden – klicke auf <strong>Neue Akte</strong>.</td></tr>`;
+      tableBody.innerHTML = rows || `<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Keine Akten vorhanden – klicke auf <strong>Neue Person</strong>.</td></tr>`;
       count.textContent = filtered.length + ' Akte' + (filtered.length===1?'':'n');
     }
 
@@ -408,7 +408,7 @@
         editForm.address.value = r.address || '';
         editForm.notes.value = r.notes || '';
       } else {
-        $('#editTitle').textContent = 'Neue Akte';
+        $('#editTitle').textContent = 'Neue Person';
         editForm.id.value = '';
       }
       editDialog.showModal();
