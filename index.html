@@ -179,9 +179,9 @@
     }
 
     async function configure(){
-      const url = prompt('Supabase Project URL', SUPABASE_URL || 'https://<PROJECT>.supabase.co');
+      const url = prompt('Supabase Project URL', SUPABASE_URL || 'https://xkflcxzifnpkhkmlzdoa.supabase.co');
       if(!url) return;
-      const key = prompt('Supabase Anon Public Key', SUPABASE_ANON || '<ANON_KEY>');
+      const key = prompt('Supabase Anon Public Key', SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxjeHppZm5wa2hrbWx6ZG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NjA4MDIsImV4cCI6MjA3MDEzNjgwMn0.QizK419VRChe2lHwF1hBldTnxqV2j1c1moScB_YL-dg');
       if(!key) return;
       localStorage.setItem('AKTE_SUPABASE_URL', url.trim());
       localStorage.setItem('AKTE_SUPABASE_ANON', key.trim());
