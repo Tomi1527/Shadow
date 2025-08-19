@@ -361,39 +361,6 @@ async function renderLogs(r){
     return; 
   }
 
-  // ✅ "Vorherige Fraktionen" nach vorne sortieren
-  const sorted = (data || []).sort((a, b) => {
-    if(a.title === "Vorherige Fraktionen") return -1;
-    if(b.title === "Vorherige Fraktionen") return 1;
-    return new Date(b.created_at) - new Date(a.created_at);
-  });
-
-  const items = sorted.map(l => `
-    <li class="bg-gray-800 border rounded-xl p-3">
-      <div class="flex items-center justify-between gap-2">
-        <span class="text-xs text-gray-400">${fmt(l.created_at)}</span>
-        <button class="text-xs px-2 py-1 rounded-lg bg-red-800 text-red-100 border border-red-700" onclick="deleteLog('${l.id}')">Entfernen</button>
-      </div>
-      <h3 class="mt-2 cursor-pointer text-blue-300 hover:underline" onclick="showLogModal('${l.id}')">
-        ${escapeHtml(l.title || '—')}
-      </h3>
-    </li>
-  `).join('');
-
-  logList.innerHTML = items || '<li class="text-sm text-gray-400">Noch keine Einträge.</li>';
-}
-
-
-  const { data, error } = await sb.from('entries')
-    .select('*')
-    .eq('person_id', r.id)
-    .order('created_at', { ascending: false });
-
-  if(error){ 
-    logList.innerHTML = '<li class="text-sm text-red-400">Fehler beim Laden der Einträge.</li>'; 
-    return; 
-  }
-
   const items = (data||[]).map(l => `
     <li class="bg-gray-800 border rounded-xl p-3">
       <div class="flex items-center justify-between gap-2">
@@ -500,27 +467,11 @@ function editLog(id, title, text){
 }
 
 async function deleteLog(logId){
-  // Titel des Logs abrufen
-  const { data: log, error: fetchError } = await sb.from('entries').select('title').eq('id', logId).single();
-  if(fetchError){
-    alert('Fehler beim Prüfen des Eintrags: ' + fetchError.message);
-    return;
-  }
-
-  // Löschen verhindern, wenn es die "Vorherige Fraktionen"-Akte ist
-  if(log.title === "Vorherige Fraktionen"){
-    alert('Die Akte "Vorherige Fraktionen" kann nicht gelöscht werden.');
-    return;
-  }
-
-  // Normales Löschen
   const { error } = await sb.from('entries').delete().eq('id', logId);
   if(error){ alert('Löschen fehlgeschlagen: '+error.message); return; }
-
-  const rec = state.records.find(x => x.id === currentDetailId);
+  const rec = state.records.find(x => x.id===currentDetailId);
   if(rec) await renderLogs(rec);
 }
-
 
 
 
