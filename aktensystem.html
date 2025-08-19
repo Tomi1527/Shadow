@@ -345,10 +345,10 @@ async function openDetail(id){
   detailDialog.showModal();
 }
 
-async function renderLogs(r){
-  if(!sb){ 
-    logList.innerHTML = '<li class="text-sm text-gray-400">Nicht verbunden.</li>'; 
-    return; 
+async function renderLogs(r) {
+  if (!sb) {
+    logList.innerHTML = '<li class="text-sm text-gray-400">Nicht verbunden.</li>';
+    return;
   }
 
   const { data, error } = await sb.from('entries')
@@ -356,25 +356,38 @@ async function renderLogs(r){
     .eq('person_id', r.id)
     .order('created_at', { ascending: false });
 
-  if(error){ 
-    logList.innerHTML = '<li class="text-sm text-red-400">Fehler beim Laden der Einträge.</li>'; 
-    return; 
+  if (error) {
+    logList.innerHTML = '<li class="text-sm text-red-400">Fehler beim Laden der Einträge.</li>';
+    return;
   }
 
-  const items = (data||[]).map(l => `
-    <li class="bg-gray-800 border rounded-xl p-3">
-      <div class="flex items-center justify-between gap-2">
-        <span class="text-xs text-gray-400">${fmt(l.created_at)}</span>
-        <button class="text-xs px-2 py-1 rounded-lg bg-red-800 text-red-100 border border-red-700" onclick="deleteLog('${l.id}')">Entfernen</button>
-      </div>
-      <h3 class="mt-2 cursor-pointer text-blue-300 hover:underline" onclick="showLogModal('${l.id}')">
-        ${escapeHtml(l.title || '—')}
-      </h3>
-    </li>
-  `).join('');
+  const logs = data || [];
 
-  logList.innerHTML = items || '<li class="text-sm text-gray-400">Noch keine Einträge.</li>';
+  // Spezial-Log nach oben sortieren
+  logs.sort((a, b) => {
+    if (a.title === 'Vorherige Fraktionen') return -1;
+    if (b.title === 'Vorherige Fraktionen') return 1;
+    return 0;
+  });
+
+  const items = logs.map(l => {
+    const isSpecial = l.title === 'Vorherige Fraktionen';
+    return `
+      <li class="bg-gray-800 border rounded-xl p-3">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs text-gray-400">${fmt(l.created_at)}</span>
+          ${isSpecial ? '' : `<button class="text-xs px-2 py-1 rounded-lg bg-red-800 text-red-100 border border-red-700" onclick="deleteLog('${l.id}')">Entfernen</button>`}
+        </div>
+        <h3 class="mt-2 cursor-pointer text-blue-300 hover:underline" onclick="showLogModal('${l.id}')">
+          ${escapeHtml(l.title || '—')}
+        </h3>
+      </li>
+    `;
+  });
+
+  logList.innerHTML = items.join('') || '<li class="text-sm text-gray-400">Noch keine Einträge.</li>';
 }
+
 
 // Neues Log hinzufügen
 async function addLog(){
@@ -437,13 +450,15 @@ async function showLogModal(id){
 }
 
 // Bearbeiten-Funktion
-function editLog(id, title, text){
+function editLog(id, title, text) {
+  const isSpecial = title === 'Vorherige Fraktionen'; // Spezial-Log prüfen
+
   logModal.style.width = '400px';
   logModal.style.height = '300px';
 
   logModal.innerHTML = `
     <h2 class="text-lg font-bold mb-2">Eintrag bearbeiten</h2>
-    <input id="logTitle" class="w-full p-2 mb-2 rounded bg-gray-700 text-white" value="${escapeHtml(title)}" />
+    <input id="logTitle" class="w-full p-2 mb-2 rounded bg-gray-700 text-white" value="${escapeHtml(title)}" ${isSpecial ? 'readonly' : ''} />
     <textarea id="logText" class="w-full p-2 mb-2 rounded bg-gray-700 text-white" rows="8">${escapeHtml(text)}</textarea>
     <div class="flex justify-end gap-2">
       <button id="cancelBtn" class="px-3 py-1 rounded bg-gray-600">Abbrechen</button>
@@ -455,16 +470,27 @@ function editLog(id, title, text){
   $('#saveBtn').onclick = async () => {
     const newTitle = $('#logTitle').value.trim();
     const newText = $('#logText').value.trim();
-    if(!newTitle || !newText){ alert('Bitte Titel und Text ausfüllen'); return; }
 
-    const { error } = await sb.from('entries').update({ title: newTitle, text: newText }).eq('id', id);
-    if(error){ alert('Speichern fehlgeschlagen: ' + error.message); return; }
+    if (!newTitle || !newText) { 
+      alert('Bitte Titel und Text ausfüllen'); 
+      return; 
+    }
+
+    // Falls Spezial-Log, Titel nicht ändern
+    const updateData = isSpecial ? { text: newText } : { title: newTitle, text: newText };
+
+    const { error } = await sb.from('entries').update(updateData).eq('id', id);
+    if (error) { 
+      alert('Speichern fehlgeschlagen: ' + error.message); 
+      return; 
+    }
 
     logModal.close();
     const rec = state.records.find(x => x.id === currentDetailId);
-    if(rec) await renderLogs(rec);
+    if (rec) await renderLogs(rec);
   };
 }
+
 
 async function deleteLog(logId){
   const { error } = await sb.from('entries').delete().eq('id', logId);
