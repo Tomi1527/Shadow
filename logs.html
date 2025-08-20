@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Übersicht</title>
+  <script>
+  // Prüfen ob eingeloggt
+  if(sessionStorage.getItem('loggedIn') !== 'true'){
+    window.location.href = "index.html"; // Hier Zielseite geändert
+  }
+</script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: #0f172a;
+      margin: 0;
+      padding: 40px;
+      color: #f1f5f9;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 30px;
+      color: #e2e8f0;
+    }
+
+    .table-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #f1f5f9;
+    }
+
+    thead {
+      background: #334155;
+      color: #e2e8f0;
+    }
+
+    th, td {
+      padding: 14px 12px;
+      text-align: left;
+    }
+
+    th {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tr:hover {
+      background: #334155;
+      transition: 0.2s ease;
+    }
+
+    .username {
+      color: #60a5fa;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .logins-list {
+      margin: 10px 0 20px 20px;
+      padding: 10px;
+      background: #0f172a;
+      border-left: 3px solid #60a5fa;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .logins-list ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .logins-list li {
+      margin: 4px 0;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .tag.success {
+      background: #14532d;
+      color: #4ade80;
+      margin-left: 8px;
+    }
+
+    .tag.fail {
+      background: #7f1d1d;
+      color: #f87171;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Login Übersicht</h1>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Letzter Login</th>
+        </tr>
+      </thead>
+      <tbody id="userTable"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const { createClient } = supabase
+    const supabaseUrl = "https://xkflcxzifnpkhkmlzdoa.supabase.co"  // dein Supabase Projekt
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxjeHppZm5wa2hrbWx6ZG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NjA4MDIsImV4cCI6MjA3MDEzNjgwMn0.QizK419VRChe2lHwF1hBldTnxqV2j1c1moScB_YL-dg"                     // dein anon key
+    const client = createClient(supabaseUrl, supabaseKey)
+
+    let allLogins = []
+
+    async function loadLogins() {
+      const { data, error } = await client
+        .from("logins")
+        .select("username, timestamp, success")
+        .order("timestamp", { ascending: false })
+
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      allLogins = data
+
+      // Unique User sammeln
+      const userMap = {}
+      data.forEach(row => {
+        if (!userMap[row.username]) {
+          userMap[row.username] = row.timestamp
+        }
+      })
+
+      const table = document.getElementById("userTable")
+      table.innerHTML = ""
+
+      Object.entries(userMap).forEach(([username, lastLogin]) => {
+        const tr = document.createElement("tr")
+        tr.innerHTML = `
+          <td><span class="username" onclick="toggleLogins('${username}')">${username}</span></td>
+          <td>${new Date(lastLogin).toLocaleString()}</td>
+        `
+        table.appendChild(tr)
+
+        // Container für die Details
+        const detailRow = document.createElement("tr")
+        detailRow.innerHTML = `
+          <td colspan="2">
+            <div id="logins-${username}" class="logins-list"></div>
+          </td>
+        `
+        table.appendChild(detailRow)
+      })
+    }
+
+    function toggleLogins(username) {
+  const container = document.getElementById(`logins-${username}`)
+  if (container.style.display === "block") {
+    container.style.display = "none"
+    return
+  }
+
+  // Keine anderen schließen, damit mehrere geöffnet bleiben
+
+  // Login-Daten für den User holen
+  const userLogins = allLogins.filter(l => l.username === username)
+
+  container.innerHTML = `
+    <strong>Logins von ${username}:</strong>
+    <ul>
+      ${userLogins.map(l => `
+        <li>
+          ${new Date(l.timestamp).toLocaleString()}
+          <span class="tag ${l.success ? "success" : "fail"}">
+            ${l.success ? "Erfolgreich" : "Fehlgeschlagen"}
+          </span>
+        </li>
+      `).join("")}
+    </ul>
+  `
+  container.style.display = "block"
+}
+
+
+    loadLogins()
+  </script>
+</body>
+</html>
