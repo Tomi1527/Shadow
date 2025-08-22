@@ -247,6 +247,7 @@
     // CRUD (Supabase)
     // =============================
     async function refresh(){
+	
       if(!sb){ render(); return; }
       const { data, error } = await sb.from('persons').select('*').order('updated_at', { ascending: false });
       if(error){ console.error(error); alert('Fehler beim Laden: '+error.message); return; }
