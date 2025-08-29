@@ -83,7 +83,6 @@
 
       const success = !!data && !error;
 
-      // Login in die Log-Tabelle schreiben
       await supabase.from('logins').insert([{ username, success, created_at: new Date().toISOString() }]);
 
       if(success) {
@@ -98,7 +97,6 @@
       }
     }
 
-    // Auto-Weiterleitung, falls bereits eingeloggt
     if(sessionStorage.getItem('loggedIn') === 'true') {
       const role = sessionStorage.getItem('role');
       if(role === 'admin') window.location.href = "logauswahl.html";
