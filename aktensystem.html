@@ -5,18 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shadow Aktensystem</title>
   <meta name="description" content="Kostenloses Aktensystem mit Supabase-Sync. Dark Mode, Suche, Sortierung, Einträge/Logs, Export/Import. Läuft statisch auf GitHub Pages." />
-  <!-- TailwindCSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class' };
   </script>
   <script>
-  // Prüfen ob eingeloggt
   if(sessionStorage.getItem('loggedIn') !== 'true'){
-    window.location.href = "index.html"; // Hier Zielseite geändert
+    window.location.href = "index.html";
   }
 </script>
-  <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     html { scroll-behavior: smooth; }
@@ -24,9 +21,7 @@
   </style>
 </head>
 <body class="bg-gray-900 text-gray-100">
-  <!-- App Container -->
   <div class="min-h-screen max-w-6xl mx-auto px-4 py-6">
-    <!-- Header -->
     <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
       <div>
         <h1 class="text-3xl font-bold tracking-tight">Shadow Aktensystem</h1>
@@ -42,7 +37,6 @@
       </div>
     </header>
 
-    <!-- Toolbar -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
       <div class="col-span-2 flex items-center gap-2">
         <input id="search" type="search" placeholder="Suche nach Name, Telefon, Fraktion…" class="w-full px-4 py-2 rounded-2xl border shadow bg-gray-800 focus:outline-none focus:ring focus:ring-blue-500" />
@@ -60,7 +54,6 @@
       </div>
     </section>
 
-    <!-- Table -->
     <section class="bg-gray-800 rounded-2xl shadow overflow-hidden">
       <div class="overflow-x-auto">
         <table class="min-w-full border-collapse">
@@ -78,7 +71,6 @@
       </div>
     </section>
 
-    <!-- Detail/Einträge Drawer -->
     <dialog id="detailDialog" class="w-full max-w-3xl rounded-2xl p-0">
       <form method="dialog" class="p-4 flex justify-between items-start border-b bg-gray-800 text-gray-100">
         <h3 class="text-lg font-semibold">Akte: <span id="detailName"></span></h3>
@@ -121,7 +113,6 @@
       </div>
     </dialog>
 
-    <!-- Add/Edit Modal -->
     <dialog id="editDialog" class="w-full max-w-2xl rounded-2xl p-0">
       <form method="dialog" class="p-4 flex justify-between items-start border-b bg-gray-800 text-gray-100">
         <h3 id="editTitle" class="text-lg font-semibold">Neue Person</h3>
@@ -159,13 +150,10 @@
   </div>
 
   <script>
-    // =============================
-    // Konfiguration / Supabase
-    // =============================
+
     const $ = (sel, ctx=document) => ctx.querySelector(sel);
     const fmt = (d) => new Date(d).toLocaleString();
 
-    // In LocalStorage hinterlegte Supabase-Creds (per Button "Verbinden" setzen)
     let SUPABASE_URL = localStorage.getItem('AKTE_SUPABASE_URL') || '';
     let SUPABASE_ANON = localStorage.getItem('AKTE_SUPABASE_ANON') || '';
 
@@ -198,9 +186,6 @@
       alert('Verbunden!');
     }
 
-    // =============================
-    // State & Helpers
-    // =============================
     let state = { records: [], search: '', sortBy: 'updatedAt-desc' };
     const tableBody = $('#tableBody');
     const count = $('#count');
@@ -214,7 +199,7 @@
         name: row.name || '',
         phone: row.phone || '',
         address: row.address || '',
-        notes: row.notes || '', // "Fraktion"
+        notes: row.notes || '',
         createdAt: row.created_at,
         updatedAt: row.updated_at
       };
@@ -243,9 +228,6 @@
       count.textContent = filtered.length + ' Person' + (filtered.length===1?'':'en');
     }
 
-    // =============================
-    // CRUD (Supabase)
-    // =============================
     async function refresh(){
 	
       if(!sb){ render(); return; }
@@ -255,9 +237,6 @@
       render();
     }
 
-// =============================
-// Neue Person erstellen (+ automatisch Akte "Vorherige Fraktionen")
-// =============================
 async function createRecord(data){
   if(!sb){ 
     alert('Noch nicht verbunden. Klicke oben auf "Verbinden".'); 
@@ -274,7 +253,6 @@ async function createRecord(data){
     updated_at: now 
   };
 
-  // Person anlegen
   const { data: inserted, error } = await sb.from('persons')
     .insert(row)
     .select()
@@ -285,7 +263,6 @@ async function createRecord(data){
     return; 
   }
 
-  // Automatisch Akte "Vorherige Fraktionen" hinzufügen
   const { error: logError } = await sb.from('entries').insert({
     person_id: inserted.id,
     title: "Vorherige Fraktionen",
@@ -317,11 +294,6 @@ async function createRecord(data){
       await refresh();
     }
 
-
-
-// =============================
-// Einträge/Logs mit Modal & Bearbeiten-Button
-// =============================
 const detailDialog = $('#detailDialog');
 const logList = $('#logList');
 let currentDetailId = null;
@@ -364,7 +336,6 @@ async function renderLogs(r) {
 
   const logs = data || [];
 
-  // Spezial-Log nach oben sortieren
   logs.sort((a, b) => {
     if (a.title === 'Vorherige Fraktionen') return -1;
     if (b.title === 'Vorherige Fraktionen') return 1;
@@ -389,8 +360,6 @@ async function renderLogs(r) {
   logList.innerHTML = items.join('') || '<li class="text-sm text-gray-400">Noch keine Einträge.</li>';
 }
 
-
-// Neues Log hinzufügen
 async function addLog(){
   if(!currentDetailId) return;
 
@@ -424,7 +393,6 @@ async function addLog(){
   };
 }
 
-// Bestehenden Log anzeigen + Bearbeiten-Button (großes Lesemodal)
 async function showLogModal(id){
   const { data, error } = await sb.from('entries').select('*').eq('id', id).single();
   if(error || !data){ return alert('Eintrag nicht gefunden'); }
@@ -450,9 +418,8 @@ async function showLogModal(id){
   $('#editBtn').onclick = () => editLog(id, title, text);
 }
 
-// Bearbeiten-Funktion
 function editLog(id, title, text) {
-  const isSpecial = title === 'Vorherige Fraktionen'; // Spezial-Log prüfen
+  const isSpecial = title === 'Vorherige Fraktionen';
 
   logModal.style.width = '400px';
   logModal.style.height = '300px';
@@ -477,7 +444,6 @@ function editLog(id, title, text) {
       return; 
     }
 
-    // Falls Spezial-Log, Titel nicht ändern
     const updateData = isSpecial ? { text: newText } : { title: newTitle, text: newText };
 
     const { error } = await sb.from('entries').update(updateData).eq('id', id);
@@ -501,13 +467,6 @@ async function deleteLog(logId){
 }
 
 
-
-
-
-
-    // =============================
-    // Export / Import (Supabase)
-    // =============================
     async function exportJSON(){
       if(!sb){ alert('Nicht verbunden.'); return; }
       const { data: persons, error: e1 } = await sb.from('persons').select('*');
@@ -527,7 +486,6 @@ async function deleteLog(logId){
       reader.onload = async () => {
         try{
           const obj = JSON.parse(reader.result);
-          // Alte Form (Array Personen-only) unterstützen
           if(Array.isArray(obj)){
             const persons = obj.map(p=>({ id: p.id, name:p.name, phone:p.phone, address:p.address, notes:p.notes, created_at:p.createdAt, updated_at:p.updatedAt }));
             const { error } = await sb.from('persons').upsert(persons, { onConflict: 'id' });
@@ -548,15 +506,11 @@ async function deleteLog(logId){
     async function resetAll(){
       if(!sb){ alert('Nicht verbunden.'); return; }
       if(!confirm('WIRKLICH ALLES löschen? (Personen & Einträge)')) return;
-      // Reihenfolge: entries -> persons
       await sb.from('entries').delete().neq('id', null);
       await sb.from('persons').delete().neq('id', null);
       await refresh();
     }
 
-    // =============================
-    // Realtime
-    // =============================
     function initRealtime(){
       if(!sb) return;
       sb.channel('realtime-akte')
@@ -567,9 +521,6 @@ async function deleteLog(logId){
         .subscribe();
     }
 
-    // =============================
-    // Add/Edit Modal
-    // =============================
     const editDialog = $('#editDialog');
     const editForm = $('#editForm');
 
@@ -601,9 +552,6 @@ async function deleteLog(logId){
       editDialog.close();
     });
 
-    // =============================
-    // Events & init
-    // =============================
     $('#btnConfig').addEventListener('click', configure);
     $('#btnAdd').addEventListener('click', ()=>openEdit());
     $('#btnExport').addEventListener('click', exportJSON);
@@ -613,18 +561,15 @@ async function deleteLog(logId){
     $('#sortBy').addEventListener('change', (e)=>{ state.sortBy = e.target.value; render(); });
     $('#btnAddLog').addEventListener('click', (e)=>{ e.preventDefault(); addLog(); });
 
-    // Expose for onclick handlers used in HTML strings
     window.openDetail = openDetail;
     window.openEdit = openEdit;
     window.removeRecord = removeRecord;
     window.deleteLog = deleteLog;
 
-    // Start
     initClient();
     refresh();
     initRealtime();
 
-    // Hinweis beim ersten Start ohne Konfiguration
     if(!SUPABASE_URL || !SUPABASE_ANON){
       setTimeout(()=>{
         alert('Supabase ist noch nicht konfiguriert. Klicke oben auf "Verbinden" und trage URL & Anon Key ein.');
