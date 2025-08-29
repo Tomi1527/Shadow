@@ -4,9 +4,8 @@
   <meta charset="UTF-8">
   <title>Login Übersicht Shadow</title>
   <script>
-  // Prüfen ob eingeloggt
   if(sessionStorage.getItem('loggedIn') !== 'true'){
-    window.location.href = "index.html"; // Hier Zielseite geändert
+    window.location.href = "index.html";
   }
 </script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -126,7 +125,7 @@
 
   <script>
     const { createClient } = supabase
-    const supabaseUrl = "https://xkflcxzifnpkhkmlzdoa.supabase.co"  // dein Supabase Projekt
+    const supabaseUrl = "https://xkflcxzifnpkhkmlzdoa.supabase.co"
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxjeHppZm5wa2hrbWx6ZG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NjA4MDIsImV4cCI6MjA3MDEzNjgwMn0.QizK419VRChe2lHwF1hBldTnxqV2j1c1moScB_YL-dg"                     // dein anon key
     const client = createClient(supabaseUrl, supabaseKey)
 
@@ -145,7 +144,6 @@
 
       allLogins = data
 
-      // Unique User sammeln
       const userMap = {}
       data.forEach(row => {
         if (!userMap[row.username]) {
@@ -164,7 +162,6 @@
         `
         table.appendChild(tr)
 
-        // Container für die Details
         const detailRow = document.createElement("tr")
         detailRow.innerHTML = `
           <td colspan="2">
@@ -182,9 +179,6 @@
     return
   }
 
-  // Keine anderen schließen, damit mehrere geöffnet bleiben
-
-  // Login-Daten für den User holen
   const userLogins = allLogins.filter(l => l.username === username)
 
   container.innerHTML = `
@@ -208,4 +202,5 @@
   </script>
 </body>
 </html>
+
 
