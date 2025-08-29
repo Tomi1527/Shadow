@@ -7,9 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-  // Prüfen ob eingeloggt
   if(sessionStorage.getItem('loggedIn') !== 'true'){
-    window.location.href = "index.html"; // Hier Zielseite geändert
+    window.location.href = "index.html";
   }
 </script>
 </head>
@@ -46,18 +45,17 @@
     return json;
   }
 
-  // 🔹 Personennamen laden (wenn person_id existiert)
   async function fetchPersonName(personId) {
     if (!personId) return null;
     const { data, error } = await sb
-      .from('persons') // Tabellenname anpassen falls nötig
+      .from('persons') 
       .select('name')
       .eq('id', personId)
       .single();
     return error ? null : data.name;
   }
 
-  // 🔹 Daten fürs Dashboard aufbereiten
+
   async function renderData(obj, type='person'){
     obj = safeParse(obj);
     if(!obj) return '—';
@@ -72,7 +70,7 @@
       return fields.filter(([_, val]) => val).map(([label,val]) => `<strong>${label}:</strong> ${val}`).join('<br>');
     }
 
-    // Standard "Person"
+
     const fields = [
       ['Name', obj.name],
       ['Tel.', obj.phone],
@@ -81,7 +79,7 @@
     return fields.filter(([_, val]) => val).map(([label,val]) => `<strong>${label}:</strong> ${val}`).join('<br>');
   }
 
-  // 🔹 Vorher/Nachher Rendering
+ 
   async function renderDetails(table, oldData, newData){
     const type = table==='entries' ? 'entry' : 'person';
     const oldHtml = await renderData(oldData, type);
@@ -95,7 +93,7 @@
     `;
   }
 
-  // 🔹 Logs laden und rendern
+
   async function loadLogs(){
     const { data, error } = await sb
       .from('audit_logs')
@@ -131,3 +129,4 @@
 
 </body>
 </html>
+
