@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Website in Bearbeitung</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #f8fafc;
+      font-family: "Poppins", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      animation: fadeInDown 1s ease-in-out;
+    }
+
+    p {
+      font-size: 1.25rem;
+      max-width: 600px;
+      animation: fadeInUp 1.5s ease-in-out;
+    }
+
+    .loader {
+      margin-top: 2rem;
+      width: 60px;
+      height: 60px;
+      border: 6px solid #f8fafc33;
+      border-top: 6px solid #38bdf8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    footer {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚧 Website in Bearbeitung</h1>
+<p>Die Website wird derzeit überarbeitet und ist in Kürze wieder verfügbar. Wir bitten um Ihr Verständnis und etwas Geduld.</p>
+  <div class="loader"></div>
+
+  <footer></footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
