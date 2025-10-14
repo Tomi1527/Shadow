@@ -72,52 +72,38 @@
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function login() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
 
-  const { data, error } = await supabase
-    .from("users")
-    .select("*")
-    .eq("username", username)
-    .eq("password", password)
-    .single();
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .eq('password', password)
+        .single();
 
-  const success = !!data && !error;
-  await supabase.from("logins").insert([
-    { username, success, created_at: new Date().toISOString() },
-  ]);
+      const success = !!data && !error;
 
-  if (success) {
-    sessionStorage.setItem("loggedIn", "true");
-    sessionStorage.setItem("role", data.role);
-    sessionStorage.setItem("username", data.username);
+      await supabase.from('logins').insert([{ username, success, created_at: new Date().toISOString() }]);
 
-    if (data.role === "admin") {
-      window.location.href = "logauswahl.html";
-    } else if (data.role === "agent") {
-      window.location.href = "aktensystem.html";
-    } else if (data.role === "user") {
-      window.location.href = "wartung.html";
-    } else {
-      document.getElementById("error").innerText =
-        "Unbekannte Rolle – bitte Admin kontaktieren!";
+ if(success) {
+        sessionStorage.setItem('loggedIn', 'true');
+        sessionStorage.setItem('role', data.role);
+        sessionStorage.setItem('username', data.username);
+
+        if(data.role === 'admin') window.location.href = "logauswahl.html";
+        else window.location.href = "aktensystem.html";
+      } else {
+        document.getElementById("error").innerText = "Benutzername oder Passwort falsch!";
+      }
     }
-  } else {
-    document.getElementById("error").innerText =
-      "Benutzername oder Passwort falsch!";
-  }
-}
-if (sessionStorage.getItem("loggedIn") === "true") {
-  const role = sessionStorage.getItem("role");
 
-  if (role === "admin") {
-    window.location.href = "logauswahl.html";
-  } else if (role === "agent") {
-    window.location.href = "aktensystem.html";
-  } else if (role === "user") {
-    window.location.href = "wartung.html";
-  }
-}
+    if(sessionStorage.getItem('loggedIn') === 'true') {
+      const role = sessionStorage.getItem('role');
+      if(role === 'admin') window.location.href = "logauswahl.html";
+      else if(role === 'agent') window.location.href = "aktensystem.html";
+      else window.location.href = "wartung.html";
+    }
   </script>
 </body>
 </html>
