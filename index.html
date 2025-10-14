@@ -59,7 +59,7 @@
 <body>
   <div id="loginBox">
     <h2>Login</h2>
-    <input type="text" id="email" placeholder="E-Mail">
+    <input type="text" id="username" placeholder="Benutzername">
     <input type="password" id="password" placeholder="Passwort">
     <button onclick="login()">Login</button>
     <div id="error"></div>
@@ -69,52 +69,38 @@
   <script>
     const SUPABASE_URL = "https://xkflcxzifnpkhkmlzdoa.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZmxjeHppZm5wa2hrbWx6ZG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NjA4MDIsImV4cCI6MjA3MDEzNjgwMn0.QizK419VRChe2lHwF1hBldTnxqV2j1c1moScB_YL-dg";
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function login() {
-      const email = document.getElementById("email").value;
+      const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
-      const errorBox = document.getElementById("error");
-      errorBox.innerText = "";
 
-      if (!email || !password) {
-        errorBox.innerText = "Bitte alle Felder ausfüllen!";
-        return;
-      }
-
-      // Login via Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error || !data.session) {
-        errorBox.innerText = "Benutzername oder Passwort falsch!";
-        return;
-      }
-
-      // Session speichern
-      sessionStorage.setItem('loggedIn', 'true');
-      sessionStorage.setItem('email', email);
-
-      // Benutzerrolle abfragen (aus deiner users-Tabelle)
-      const { data: userData, error: userError } = await supabase
+      const { data, error } = await supabase
         .from('users')
-        .select('role')
-        .eq('email', email)
+        .select('*')
+        .eq('username', username)
+        .eq('password', password)
         .single();
 
-      const role = userData?.role || 'user';
-      sessionStorage.setItem('role', role);
+      const success = !!data && !error;
 
-      // Weiterleitung basierend auf Rolle
-      if (role === 'admin') window.location.href = "logauswahl.html";
-      else if (role === 'agent') window.location.href = "aktensystem.html";
-      else window.location.href = "wartung.html";
+      await supabase.from('logins').insert([{ username, success, created_at: new Date().toISOString() }]);
+
+ if(success) {
+        sessionStorage.setItem('loggedIn', 'true');
+        sessionStorage.setItem('role', data.role);
+        sessionStorage.setItem('username', data.username);
+
+        if(data.role === 'admin') window.location.href = "logauswahl.html";
+        else window.location.href = "wartung.html";
+      } else {
+        document.getElementById("error").innerText = "Benutzername oder Passwort falsch!";
+      }
     }
 
-    // Automatische Weiterleitung, wenn bereits eingeloggt
-    if (sessionStorage.getItem('loggedIn') === 'true') {
+    if(sessionStorage.getItem('loggedIn') === 'true') {
       const role = sessionStorage.getItem('role');
-      if (role === 'admin') window.location.href = "logauswahl.html";
-      else if (role === 'agent') window.location.href = "aktensystem.html";
+      if(role === 'admin') window.location.href = "logauswahl.html";
       else window.location.href = "wartung.html";
     }
   </script>
