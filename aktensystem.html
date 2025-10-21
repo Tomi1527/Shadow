@@ -175,7 +175,7 @@
     async function configure(){
       const url = prompt('URL', SUPABASE_URL || '');
       if(!url) return;
-      const key = prompt('Supabase Anon Public Key', SUPABASE_ANON || '');
+      const key = prompt('KEY', SUPABASE_ANON || '');
       if(!key) return;
       localStorage.setItem('AKTE_SUPABASE_URL', url.trim());
       localStorage.setItem('AKTE_SUPABASE_ANON', key.trim());
